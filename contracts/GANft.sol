@@ -17,7 +17,12 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
  * @notice This contract is meant to serve for both Semi- and Non- fungible tokens as part of the  Github Achievements NFT project
  * @author ghadimhawej.eth | bitspent.eth
  **/
-contract GANft is Ownable, ERC1155Pausable, ERC1155Supply, ERC1155Burnable {
+contract GANft is
+    Ownable,
+    ERC1155Pausable,
+    ERC1155Supply,
+    ERC1155Burnable
+{
     /// @notice using strings for uints (token ID encoding)
     using Strings for uint256;
 
@@ -27,11 +32,11 @@ contract GANft is Ownable, ERC1155Pausable, ERC1155Supply, ERC1155Burnable {
     /// @notice the max supply for SFT and NFT, metadata file type
     string private constant METADATA_EXTENTION = ".json";
 
-    /// @notice The rate of minting per tokenId
+     /// @notice The rate of minting per tokenId
     mapping(uint256 => uint256) public mintPrice;
 
     /// @notice Mapping minted token Ids by address
-    mapping(address => mapping(uint64 => bool)) hasMintedToken;
+    mapping(address => mapping(uint256 => bool)) hasMintedToken;
 
     /// @notice Contract Token name and symbol
     string public name;
@@ -80,7 +85,10 @@ contract GANft is Ownable, ERC1155Pausable, ERC1155Supply, ERC1155Burnable {
     }
 
     /// @notice change max token Id
-    function incrementMaxId(uint256 mintPrice_) public onlyOwner {
+    function incrementMaxId(uint256 mintPrice_)
+        public
+        onlyOwner
+    {
         maxId++;
         mintPrice[maxId] = mintPrice_;
     }
@@ -141,44 +149,73 @@ contract GANft is Ownable, ERC1155Pausable, ERC1155Supply, ERC1155Burnable {
      * @param to_ address of the user minting
      * @param tokenId_ id of token to be minted
      **/
-    function mint(address to_, uint64 tokenId_) public payable whenNotPaused {
+    function mint(
+        address to_,
+        uint256 tokenId_
+    ) public payable whenNotPaused {
         uint256 received = msg.value;
         uint8 amount_ = 1;
         require(to_ != address(0), "GANft: Address cannot be 0");
-        require(
-            to_ == msg.sender,
-            "GANft: only owner of achievement can mint this token"
-        );
+        require(to_ == msg.sender, "GANft: only owner of achievement can mint this token");
         require(
             received == mintPrice[tokenId_],
             "GANft: Ether sent is not the right amount"
         );
         require(tokenId_ <= maxId, "GANft: Token id doesn't exist");
 
-        require(
-            !hasMintedToken[to_][tokenId_],
-            "GANft: Token has already been minted"
-        );
+        require(!hasMintedToken[to_][tokenId_], "GANft: Token has already been minted");
 
         _mint(to_, tokenId_, amount_, "0x00");
         hasMintedToken[to_][tokenId_] = true;
         emit Minted(to_, tokenId_, amount_);
     }
 
+       /**
+     * @notice mints tokens based on parameters
+     * @param to_ address of the user minting
+     * @param tokenIds_ ids of tokens to be minted
+     **/
+    function mintBatch(
+        address to_,
+        uint256[] memory tokenIds_
+    ) public payable whenNotPaused {
+        uint256 received = msg.value;
+         uint8 amount_ = 1;
+
+         require(to_ != address(0), "GANft: Address cannot be 0");
+        require(to_ == msg.sender, "GANft: only owner of achievement can mint this token");
+        
+         for (uint256 i = 0; i < tokenIds_.length; i++) {
+             require(
+            received == mintPrice[tokenIds_[i]],
+            "GANft: Ether sent is not the right amount"
+        );
+             require(tokenIds_[i] <= maxId, "GANft: Token id doesn't exist");
+             require(!hasMintedToken[to_][tokenIds_[i]], "GANft: Token has already been minted");
+
+             _mint(to_, tokenIds_[i], amount_, "0x00");
+             hasMintedToken[to_][tokenIds_[i]] = true;
+              emit Minted(to_, tokenIds_[i], amount_);
+        }
+
+    }
+
+
+
     /**
      * @notice checks if an address minted the token
      * @param minter address user minting nft
      * @param tokenId_ token to check for
      **/
-    function checkIfMinted(address minter, uint64 tokenId_)
+    function checkIfMinted(address minter, uint256 tokenId_)
         public
         view
         returns (bool)
     {
-        return hasMintedToken[minter][tokenId_];
+        return  hasMintedToken[minter][tokenId_];
     }
 
-    /**
+      /**
      * @dev See {IERC1155-safeTransferFrom}.
      */
     function safeTransferFrom(
@@ -192,10 +229,7 @@ contract GANft is Ownable, ERC1155Pausable, ERC1155Supply, ERC1155Burnable {
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
             "ERC1155: caller is not token owner or approved"
         );
-        require(
-            isSoulBound == false,
-            "GANft: SouldBond Tokens are non transferrable"
-        );
+         require(isSoulBound == false, "GANft: SouldBond Tokens are non transferrable");
         _safeTransferFrom(from, to, id, amount, data);
     }
 
@@ -213,12 +247,10 @@ contract GANft is Ownable, ERC1155Pausable, ERC1155Supply, ERC1155Burnable {
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
             "ERC1155: caller is not token owner or approved"
         );
-        require(
-            isSoulBound == false,
-            "GANft: SouldBond Tokens are non transferrable"
-        );
+        require(isSoulBound == false, "GANft: SouldBond Tokens are non transferrable");
         _safeBatchTransferFrom(from, to, ids, amounts, data);
     }
+
 
     /**
      * @notice add initial token ids with their respective supplies
