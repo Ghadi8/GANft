@@ -1,11 +1,11 @@
-const gaNftContract = artifacts.require("GANft");
+const gaNftContract = artifacts.require("ganft");
 
 const { setEnvValue } = require("../utils/env-man");
 
 const conf = require("../migration-parameters");
 
 const setGANft = (n, v) => {
-  setEnvValue("../", `GANft_ADDRESS${n.toUpperCase()}`, v);
+  setEnvValue("../", `ganft_ADDRESS${n.toUpperCase()}`, v);
 };
 
 module.exports = async (deployer, network, accounts) => {
@@ -15,6 +15,9 @@ module.exports = async (deployer, network, accounts) => {
       break;
     case "mainnet":
       c = { ...conf.mainnet };
+      break;
+    case "mumbai":
+      c = { ...conf.mumbai };
       break;
     case "development":
     default:
@@ -27,15 +30,16 @@ module.exports = async (deployer, network, accounts) => {
     c.name,
     c.symbol,
     c.uri,
-    c.maxId,
-    c.mintCostPerTokenId
+    c.minter,
+    c.payees,
+    c.shares
   );
 
   const gaNft = await gaNftContract.deployed();
 
   if (gaNft) {
     console.log(
-      `Deployed: GANft
+      `Deployed: ganft
        network: ${network}
        address: ${gaNft.address}
        creator: ${accounts[0]}
@@ -43,6 +47,6 @@ module.exports = async (deployer, network, accounts) => {
     );
     setGANft(network, gaNft.address);
   } else {
-    console.log("GANft Deployment UNSUCCESSFUL");
+    console.log("ganft Deployment UNSUCCESSFUL");
   }
 };
