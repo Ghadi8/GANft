@@ -2386,6 +2386,8 @@ contract ganft is Ownable, ERC1155Supply, PaymentSplitter {
     /// @notice Mapping tickets owned by address
     mapping(address => uint256) public tickets;
 
+    mapping(bytes32 => address) public gitToWallet;
+
     /// @notice Contract Token name and symbol
     string public name;
     string public symbol;
@@ -2528,6 +2530,7 @@ contract ganft is Ownable, ERC1155Supply, PaymentSplitter {
         }
         achievements[wallet] = achievementIDs;
         tickets[wallet]--;
+        gitToWallet[gitKeccak] = wallet;
         emit Forged(achievementIDs, achievementAmount, gitKeccak, wallet);
     }
 
